@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import HttpStatus from "../../statusCodes";
+import { prisma } from "@/server/db";
 
 export const interactionRouter = createTRPCRouter({
     createInteraction: protectedProcedure
@@ -23,6 +24,83 @@ export const interactionRouter = createTRPCRouter({
                     code: HttpStatus.OK,
                     message: 'OK',
                     response: createInt
+                }
+
+            } catch (error) {
+                return {
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
+                    message: 'INTERNAL_SERVER_ERROR',
+                    response: null
+                }
+            } finally {
+                await opts.ctx.prisma.$disconnect();
+            }
+        }),
+    getAllInteractions: protectedProcedure
+        .mutation(async opts => {
+            try {
+
+                const interactions = await opts.ctx.prisma.interaction.findMany({
+                    where: {
+                        userId: opts.ctx.session.user.id
+                    }
+                })
+
+                return {
+                    code: HttpStatus.OK,
+                    message: 'OK',
+                    response: interactions
+                }
+
+            } catch (error) {
+                return {
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
+                    message: 'INTERNAL_SERVER_ERROR',
+                    response: null
+                }
+            } finally {
+                await opts.ctx.prisma.$disconnect();
+            }
+        }),
+    deleteInteraction: protectedProcedure
+        .input(z.object({
+            id: z.string()
+        }))
+        .mutation(async opts => {
+            try {
+
+                const { id } = opts.input;
+
+                const interaction = await opts.ctx.prisma.interaction.findFirst({ where: { id } });
+
+                if (!interaction) {
+                    return {
+                        code: HttpStatus.NOT_FOUND,
+                        message: 'NOT_FOUND',
+                        response: null
+                    }
+                }
+
+                const isAuthorised = interaction.userId = opts.ctx.session.user.id;
+
+                if (!isAuthorised) {
+                    return {
+                        code: HttpStatus.UNAUTHORIZED,
+                        message: 'UNAUTHORIZED',
+                        response: null
+                    }
+                }
+
+                const remove = await opts.ctx.prisma.interaction.delete({
+                    where: {
+                        id
+                    }
+                })
+
+                return {
+                    code: HttpStatus.OK,
+                    message: 'OK',
+                    response: remove
                 }
 
             } catch (error) {
