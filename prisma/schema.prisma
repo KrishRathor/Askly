@@ -49,14 +49,15 @@ model Session {
 }
 
 model User {
-    id            String    @id @default(cuid())
+    id            String        @id @default(cuid())
     name          String?
-    email         String?   @unique
+    email         String?       @unique
     emailVerified DateTime?
     image         String?
     accounts      Account[]
     sessions      Session[]
     topics        Topic[]
+    interactions  Interaction[]
 }
 
 model VerificationToken {
@@ -81,8 +82,51 @@ model Note {
     id        String   @id @default(cuid())
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
-    title     String   
+    title     String
     content   String   @db.Text
     topic     Topic    @relation(fields: [topicId], references: [id])
     topicId   String
+}
+
+model MultipleChoiceQuestion {
+    id            String      @id @default(cuid())
+    createdAt     DateTime    @default(now())
+    updatedAt     DateTime    @updatedAt
+    title         String
+    options       String[]
+    serialNo      Int
+    interactionId String
+    interaction   Interaction @relation(fields: [interactionId], references: [id])
+}
+
+model WordCloudQuestion {
+    id            String      @id @default(cuid())
+    createdAt     DateTime    @default(now())
+    updatedAt     DateTime    @updatedAt
+    title         String
+    serialNo      Int
+    interactionId String
+    interaction   Interaction @relation(fields: [interactionId], references: [id])
+}
+
+model OpenTextQuestion {
+    id            String      @id @default(cuid())
+    createdAt     DateTime    @default(now())
+    updatedAt     DateTime    @updatedAt
+    title         String
+    serialNo      Int
+    interactionId String
+    interaction   Interaction @relation(fields: [interactionId], references: [id])
+}
+
+model Interaction {
+    id         String                   @id @default(cuid())
+    createdAt  DateTime                 @default(now())
+    updatedAt  DateTime                 @updatedAt
+    title      String
+    userId     String
+    user       User                     @relation(fields: [userId], references: [id])
+    mcqs       MultipleChoiceQuestion[]
+    wordclouds WordCloudQuestion[]
+    opentexts  OpenTextQuestion[]
 }
