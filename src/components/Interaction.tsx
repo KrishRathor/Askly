@@ -41,7 +41,7 @@ export const InteractionCard: React.FC<InteractionCardProps> = (props) => {
               <p
                 className="cursor-pointer text-xl text-green-600"
                 onClick={() => {
-                  router.push(`/interaction?id=${id}`);
+                  router.push(`/edit-interaction?id=${id}`);
                 }}
               >
                 Open

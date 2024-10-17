@@ -116,7 +116,7 @@ export const interactionRouter = createTRPCRouter({
     addMcq: protectedProcedure
         .input(z.object({
             title: z.string(),
-            options: z.string(),
+            options: z.string().array(),
             serialNo: z.number(),
             interactionId: z.string()
         }))
