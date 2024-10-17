@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Navbar } from "../components/Navbar";
 import Image from "next/image";
 import { GetServerSideProps } from "next";
@@ -23,7 +23,10 @@ interface ICard {
   title: string;
   votes: number;
   type: Type;
-} 
+  id: string;
+  setSelectedQuestion: React.Dispatch<React.SetStateAction<IQuestion | null>>
+  setSelectedQuestionType: React.Dispatch<React.SetStateAction<Type>>
+}
 
 enum Type {
   MCQ,
@@ -32,8 +35,48 @@ enum Type {
   None,
 }
 
+interface IMcq {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  title: string;
+  options: string[];
+  serialNo: number;
+  interactionId: string;
+}
+
+interface IText {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  title: string;
+  serialNo: number;
+  interactionId: string;
+}
+
+interface IWord {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  title: string;
+  serialNo: number;
+  interactionId: string;
+}
+
+interface IQuestion {
+  id: string,
+  title: string,
+  options?: string[]
+}
+
 const Edit: React.FC<EditProps> = ({ id }) => {
-  const [selctedQuestion, setSelectedQuestion] = useState<Type>(Type.None);
+  const [isMounted, setIsMounted] = useState<boolean>(false);
+  const [selctedQuestionType, setSelectedQuestionType] = useState<Type>(Type.None);
+  const [selectedQuestion, setSelectedQuestion] = useState<IQuestion | null>(null);
+  const [mcqs, setMcqs] = useState<IMcq[]>([]);
+  const [words, setWords] = useState<IWord[]>([]);
+  const [text, setText] = useState<IText[]>([]);
+  const [fetch, setFetch] = useState<boolean>(true);
 
   const addMcq = api.interaction.addMcq.useMutation({
     onSuccess: (data) => {
@@ -53,12 +96,39 @@ const Edit: React.FC<EditProps> = ({ id }) => {
     },
   });
 
+  const getQuestions = api.interaction.getAllQuestions.useMutation({
+    onSuccess: (data) => {
+      console.log(data.response);
+      if (data.response) {
+        setMcqs(data.response.mcq);
+        setText(data.response.text);
+        setWords(data.response.word);
+      }
+    },
+  });
+
+  useEffect(() => {
+    getQuestions.mutateAsync({
+      id,
+    });
+  }, [fetch]);
+
+  useEffect(() => {
+    console.log(selctedQuestionType, selectedQuestion);
+  }, [selctedQuestionType, selectedQuestion]);
+
   const getSelectedComponent = () => {
-    if (selctedQuestion === Type.MCQ) {
-      return <Mcq />;
-    } else if (selctedQuestion === Type.WordCloud) {
+    if (selctedQuestionType === Type.MCQ && selectedQuestion) {
+      return (
+        <Mcq 
+          title={selectedQuestion.title}
+          id={selectedQuestion.id}
+          options={selectedQuestion.options}
+        />
+      );
+    } else if (selctedQuestionType === Type.WordCloud) {
       return <WordCloud />;
-    } else if (selctedQuestion === Type.Text) {
+    } else if (selctedQuestionType === Type.Text) {
       return <TextQuestion />;
     } else {
       return <div></div>;
@@ -66,34 +136,41 @@ const Edit: React.FC<EditProps> = ({ id }) => {
   };
 
   const handleAddQuestion = (type: string) => {
+
+    setFetch(prev => !prev);
+
     if (type === "Mcq") {
-      setSelectedQuestion(Type.MCQ);
       addMcq.mutateAsync({
-        title: 'What would you like to ask',
-        options: [''],
+        title: "What would you like to ask",
+        options: [""],
         serialNo: 0,
-        interactionId: id
-      })
+        interactionId: id,
+      });
     }
 
     if (type === "Word") {
-      setSelectedQuestion(Type.WordCloud);
       addWord.mutateAsync({
-        title: 'What would you like to ask',
+        title: "What would you like to ask",
         serialNo: 0,
-        interactionId: id
-      })
+        interactionId: id,
+      });
     }
 
     if (type === "Text") {
-      setSelectedQuestion(Type.Text);
       addText.mutateAsync({
-        title: 'What would you like to ask',
+        title: "What would you like to ask",
         serialNo: 0,
-        interactionId: id
-      })
+        interactionId: id,
+      });
     }
   };
+
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return null;
 
   return (
     <div className="h-[100vh] bg-[#1A1A1A]">
@@ -126,19 +203,48 @@ const Edit: React.FC<EditProps> = ({ id }) => {
             </DropdownMenu>
           </div>
           <div className="mx-auto mt-16 w-[80%] overflow-y-auto">
-            <div>
-              <Card title="What is this question" votes={2} type={Type.MCQ} />
-            </div>
-            <div>
-              <Card
-                title="What is this question"
-                votes={2}
-                type={Type.WordCloud}
-              />
-            </div>
-            <div>
-              <Card title="What is this question" votes={2} type={Type.Text} />
-            </div>
+            {
+              mcqs.map(mcq => (
+                <div key={mcq.id} >
+                  <Card 
+                    title={mcq.title}
+                    votes={2}
+                    type={Type.MCQ}
+                    id={mcq.id}
+                    setSelectedQuestion={setSelectedQuestion}
+                    setSelectedQuestionType={setSelectedQuestionType}
+                  />
+                </div>
+              ))
+            }
+            {
+              words.map(mcq => (
+                <div key={mcq.id} >
+                  <Card 
+                    title={mcq.title}
+                    votes={2}
+                    type={Type.MCQ}
+                    id={mcq.id}
+                    setSelectedQuestion={setSelectedQuestion}
+                    setSelectedQuestionType={setSelectedQuestionType}
+                  />
+                </div>
+              ))
+            }
+            {
+              text.map(mcq => (
+                <div key={mcq.id} >
+                  <Card 
+                    title={mcq.title}
+                    votes={2}
+                    type={Type.MCQ}
+                    id={mcq.id}
+                    setSelectedQuestion={setSelectedQuestion}
+                    setSelectedQuestionType={setSelectedQuestionType}
+                  />
+                </div>
+              ))
+            }
           </div>
         </div>
         <div className="h-[75vh] w-[70vw] border border-[#27272A]">
@@ -150,7 +256,7 @@ const Edit: React.FC<EditProps> = ({ id }) => {
 };
 
 const Card: React.FC<ICard> = (props) => {
-  const { title, votes, type } = props;
+  const { title, votes, type, id, setSelectedQuestion, setSelectedQuestionType } = props;
 
   const getTypeImage = () => {
     if (type === Type.MCQ) return "/test.png";
@@ -160,7 +266,13 @@ const Card: React.FC<ICard> = (props) => {
   };
 
   return (
-    <div className="my-4 rounded-md border border-orange-500 py-2 text-white">
+    <div onClick={() => {
+      setSelectedQuestion({
+        title,
+        id: id
+      })
+      setSelectedQuestionType(type)
+    }} className="my-4 rounded-md border border-orange-500 py-2 text-white cursor-pointer">
       <p className="my-3 text-center">{title}?</p>
       <div className="ml-4 flex ">
         <Image src={getTypeImage()} alt={title} height={30} width={30} />

@@ -261,5 +261,116 @@ export const interactionRouter = createTRPCRouter({
             } finally {
                 await opts.ctx.prisma.$disconnect();
             }
+        }),
+    updateQuestionTitle: protectedProcedure
+        .input(z.object({
+            type: z.string(),
+            title: z.string(),
+            id: z.string()
+        }))
+        .mutation(async opts => {
+            try {
+
+                const { type, title, id } = opts.input;
+
+                if (type === 'Mcq') {
+                    const update = await opts.ctx.prisma.multipleChoiceQuestion.update({
+                        where: {
+                            id
+                        },
+                        data: {
+                            title
+                        }
+                    })
+
+                    return {
+                        code: HttpStatus.OK,
+                        message: 'OK',
+                        response: update
+                    }
+                }
+
+                if (type === 'Word') {
+                    const update = await opts.ctx.prisma.wordCloudQuestion.update({
+                        where: {
+                            id
+                        },
+                        data: {
+                            title
+                        }
+                    })
+
+                    return {
+                        code: HttpStatus.OK,
+                        message: 'OK',
+                        response: update
+                    }
+                }
+
+                if (type === 'Text') {
+                    const update = await opts.ctx.prisma.openTextQuestion.update({
+                        where: {
+                            id
+                        },
+                        data: {
+                            title
+                        }
+                    })
+
+                    return {
+                        code: HttpStatus.OK,
+                        message: 'OK',
+                        response: update
+                    }
+                }
+
+                return {
+                    code: HttpStatus.BAD_REQUEST,
+                    message: 'BAD_REQUEST',
+                    response: null
+                }
+
+            } catch (error) {
+                return {
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
+                    message: 'INTERNAL_SERVER_ERROR',
+                    response: null
+                }
+            } finally {
+                await opts.ctx.prisma.$disconnect();
+            }
+        }),
+    getAllQuestions: protectedProcedure
+        .input(z.object({
+            id: z.string(),
+        }))
+        .mutation(async opts => {
+            try {
+
+                const { id } = opts.input;
+
+                const mcqs = await opts.ctx.prisma.multipleChoiceQuestion.findMany({ where: { interactionId: id } });
+                const words = await opts.ctx.prisma.wordCloudQuestion.findMany({ where: { interactionId: id } });
+                const text = await opts.ctx.prisma.openTextQuestion.findMany({ where: { interactionId: id } });
+
+                return {
+                    code: HttpStatus.OK,
+                    message: 'OK',
+                    response: {
+                        mcq: mcqs,
+                        word: words,
+                        text: text
+                    }
+                }
+
+            } catch (error) {
+                return {
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
+                    message: 'INTERNAL_SERVER_ERROR',
+                    response: null
+                }
+            } finally {
+                await opts.ctx.prisma.$disconnect();
+            }
         })
 })
