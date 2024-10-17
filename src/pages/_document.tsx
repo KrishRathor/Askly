@@ -23,7 +23,7 @@ export default function Document() {
         />
         <link rel="manifest" href="/site.webmanifest" />
 
-        <title>Askly</title>
+        <title>askly</title>
       </Head>
       <body>
         <Main />

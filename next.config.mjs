@@ -20,5 +20,18 @@ const config = {
     locales: ["en"],
     defaultLocale: "en",
   },
+
+  // Add this images configuration
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+        port: '',
+        pathname: '/u/**',
+      },
+    ],
+  },
 };
+
 export default config;
