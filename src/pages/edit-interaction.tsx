@@ -24,6 +24,7 @@ interface ICard {
   votes: number;
   type: Type;
   id: string;
+  options?: string[] | undefined;
   setSelectedQuestion: React.Dispatch<React.SetStateAction<IQuestion | null>>
   setSelectedQuestionType: React.Dispatch<React.SetStateAction<Type>>
 }
@@ -213,6 +214,7 @@ const Edit: React.FC<EditProps> = ({ id }) => {
                     id={mcq.id}
                     setSelectedQuestion={setSelectedQuestion}
                     setSelectedQuestionType={setSelectedQuestionType}
+                    options={mcq.options}
                   />
                 </div>
               ))
@@ -256,7 +258,7 @@ const Edit: React.FC<EditProps> = ({ id }) => {
 };
 
 const Card: React.FC<ICard> = (props) => {
-  const { title, votes, type, id, setSelectedQuestion, setSelectedQuestionType } = props;
+  const { title, votes, type, id, setSelectedQuestion, setSelectedQuestionType, options=[] } = props;
 
   const getTypeImage = () => {
     if (type === Type.MCQ) return "/test.png";
@@ -269,7 +271,8 @@ const Card: React.FC<ICard> = (props) => {
     <div onClick={() => {
       setSelectedQuestion({
         title,
-        id: id
+        id: id,
+        options
       })
       setSelectedQuestionType(type)
     }} className="my-4 rounded-md border border-orange-500 py-2 text-white cursor-pointer">

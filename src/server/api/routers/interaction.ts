@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { string, z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import HttpStatus from "../../statusCodes";
 import { prisma } from "@/server/db";
@@ -364,6 +364,55 @@ export const interactionRouter = createTRPCRouter({
                 }
 
             } catch (error) {
+                return {
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
+                    message: 'INTERNAL_SERVER_ERROR',
+                    response: null
+                }
+            } finally {
+                await opts.ctx.prisma.$disconnect();
+            }
+        }),
+    addOptions: protectedProcedure
+        .input(z.object({
+            options: z.string().array(),
+            id: z.string()
+        }))
+        .mutation(async opts => {
+            try {
+
+                const { options, id } = opts.input;
+
+                const question = await opts.ctx.prisma.multipleChoiceQuestion.findFirst({
+                    where: {
+                        id
+                    }
+                })
+
+                if (!question) {
+                    return {
+                        code: HttpStatus.NOT_FOUND,
+                        message: 'NOT_FOUND',
+                        response: null
+                    }
+                }
+
+                const update = await opts.ctx.prisma.multipleChoiceQuestion.update({
+                    where: {
+                        id
+                    },
+                    data: {
+                        options
+                    }
+                })
+
+                return {
+                    code: HttpStatus.OK,
+                    message: 'OK',
+                    response: update
+                }
+
+            }  catch (error) {
                 return {
                     code: HttpStatus.INTERNAL_SERVER_ERROR,
                     message: 'INTERNAL_SERVER_ERROR',
