@@ -41,7 +41,7 @@ export const InteractionCard: React.FC<InteractionCardProps> = (props) => {
               <p
                 className="cursor-pointer text-xl text-green-600"
                 onClick={() => {
-                  router.push(`/edit-interaction?id=${id}`);
+                  router.push(`/edit-interaction?id=${id}`).catch(err => console.log(err));
                 }}
               >
                 Open
@@ -51,7 +51,7 @@ export const InteractionCard: React.FC<InteractionCardProps> = (props) => {
                 onClick={() => {
                   deleteInteraction.mutateAsync({
                     id,
-                  });
+                  }).catch(err => console.log(err))
                 }}
               >
                 Delete

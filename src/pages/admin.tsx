@@ -41,7 +41,7 @@ const Admin: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    getAllInteractions.mutateAsync();
+    getAllInteractions.mutateAsync().catch(err => console.log(err));
   }, [fetch]);
 
   if (!isMounted) {
@@ -110,7 +110,7 @@ export const CreateInteractionForm: React.FC<ICreateInteractionForm> = ({
     if (title == "") return;
     createInteractionMutation.mutateAsync({
       title,
-    });
+    }).catch(err => console.log(err));
     setTitle("");
     toast("Created interaction successfully");
   };

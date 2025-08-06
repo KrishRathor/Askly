@@ -16,7 +16,7 @@ export const Navbar: React.FC = () => {
     // Check if the session is loading or if there's no user data
     if (status === "loading") return;
     if (!data || !data.user) {
-      router.push('/');
+      router.push('/').catch(err => console.log(err));
     }
   }, [data, status, router]);
 
@@ -49,7 +49,7 @@ export const Navbar: React.FC = () => {
                 <div>
                   <p className="text-xl text-white ml-2" >{data.user.name}</p>
                 </div>
-                <div className="flex m-2 cursor-pointer" onClick={() => signOut()} >
+                <div className="flex m-2 cursor-pointer" onClick={() => signOut().catch(err => console.log(err))} >
                   <Image
                     src={"/logout.png"}
                     alt="logout"

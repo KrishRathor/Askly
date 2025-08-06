@@ -14,6 +14,7 @@ import { api } from "@/utils/api";
 import { Mcq } from "@/components/event/Mcq";
 import { WordCloud } from "@/components/event/WordCloud";
 import { TextQuestion } from "@/components/event/TextQuestion";
+import { useSocket } from "@/context/SocketProvider";
 
 interface EditProps {
   id: string;
@@ -25,8 +26,8 @@ interface ICard {
   type: Type;
   id: string;
   options?: string[] | undefined;
-  setSelectedQuestion: React.Dispatch<React.SetStateAction<IQuestion | null>>
-  setSelectedQuestionType: React.Dispatch<React.SetStateAction<Type>>
+  setSelectedQuestion: React.Dispatch<React.SetStateAction<IQuestion | null>>;
+  setSelectedQuestionType: React.Dispatch<React.SetStateAction<Type>>;
 }
 
 enum Type {
@@ -65,15 +66,19 @@ interface IWord {
 }
 
 interface IQuestion {
-  id: string,
-  title: string,
-  options?: string[]
+  id: string;
+  title: string;
+  options?: string[];
 }
 
 const Edit: React.FC<EditProps> = ({ id }) => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
-  const [selctedQuestionType, setSelectedQuestionType] = useState<Type>(Type.None);
-  const [selectedQuestion, setSelectedQuestion] = useState<IQuestion | null>(null);
+  const [selctedQuestionType, setSelectedQuestionType] = useState<Type>(
+    Type.None
+  );
+  const [selectedQuestion, setSelectedQuestion] = useState<IQuestion | null>(
+    null
+  );
   const [mcqs, setMcqs] = useState<IMcq[]>([]);
   const [words, setWords] = useState<IWord[]>([]);
   const [text, setText] = useState<IText[]>([]);
@@ -111,7 +116,7 @@ const Edit: React.FC<EditProps> = ({ id }) => {
   useEffect(() => {
     getQuestions.mutateAsync({
       id,
-    });
+    }).catch(err => console.log(err));
   }, [fetch]);
 
   useEffect(() => {
@@ -120,8 +125,9 @@ const Edit: React.FC<EditProps> = ({ id }) => {
 
   const getSelectedComponent = () => {
     if (selctedQuestionType === Type.MCQ && selectedQuestion) {
+      console.log("came here", selectedQuestion.title);
       return (
-        <Mcq 
+        <Mcq
           title={selectedQuestion.title}
           id={selectedQuestion.id}
           options={selectedQuestion.options}
@@ -137,8 +143,7 @@ const Edit: React.FC<EditProps> = ({ id }) => {
   };
 
   const handleAddQuestion = (type: string) => {
-
-    setFetch(prev => !prev);
+    setFetch((prev) => !prev);
 
     if (type === "Mcq") {
       addMcq.mutateAsync({
@@ -146,7 +151,7 @@ const Edit: React.FC<EditProps> = ({ id }) => {
         options: [""],
         serialNo: 0,
         interactionId: id,
-      });
+      }).catch(err => console.log(err));
     }
 
     if (type === "Word") {
@@ -154,7 +159,7 @@ const Edit: React.FC<EditProps> = ({ id }) => {
         title: "What would you like to ask",
         serialNo: 0,
         interactionId: id,
-      });
+      }).catch(err => console.log(err));
     }
 
     if (type === "Text") {
@@ -162,14 +167,22 @@ const Edit: React.FC<EditProps> = ({ id }) => {
         title: "What would you like to ask",
         serialNo: 0,
         interactionId: id,
-      });
+      }).catch(err => console.log(err));
     }
   };
-
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const { sendRoomJoinEvent } = useSocket();
+
+  useEffect(() => {
+    if (sendRoomJoinEvent) {
+      console.log(id);
+      sendRoomJoinEvent({ id });
+    }
+  }, [id, sendRoomJoinEvent]);
 
   if (!isMounted) return null;
 
@@ -203,54 +216,64 @@ const Edit: React.FC<EditProps> = ({ id }) => {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <div className="mx-auto mt-16 w-[80%] overflow-y-auto">
-            {
-              mcqs.map(mcq => (
-                <div key={mcq.id} >
-                  <Card 
-                    title={mcq.title}
-                    votes={2}
-                    type={Type.MCQ}
-                    id={mcq.id}
-                    setSelectedQuestion={setSelectedQuestion}
-                    setSelectedQuestionType={setSelectedQuestionType}
-                    options={mcq.options}
-                  />
-                </div>
-              ))
-            }
-            {
-              words.map(mcq => (
-                <div key={mcq.id} >
-                  <Card 
-                    title={mcq.title}
-                    votes={2}
-                    type={Type.MCQ}
-                    id={mcq.id}
-                    setSelectedQuestion={setSelectedQuestion}
-                    setSelectedQuestionType={setSelectedQuestionType}
-                  />
-                </div>
-              ))
-            }
-            {
-              text.map(mcq => (
-                <div key={mcq.id} >
-                  <Card 
-                    title={mcq.title}
-                    votes={2}
-                    type={Type.MCQ}
-                    id={mcq.id}
-                    setSelectedQuestion={setSelectedQuestion}
-                    setSelectedQuestionType={setSelectedQuestionType}
-                  />
-                </div>
-              ))
-            }
+
+          <div className="mx-auto mt-16 w-[80%] max-h-[calc(80vh-120px)] overflow-y-auto">
+            {mcqs.map((mcq) => (
+              <div key={mcq.id}>
+                <Card
+                  title={mcq.title}
+                  votes={2}
+                  type={Type.MCQ}
+                  id={mcq.id}
+                  setSelectedQuestion={setSelectedQuestion}
+                  setSelectedQuestionType={setSelectedQuestionType}
+                  options={mcq.options}
+                />
+              </div>
+            ))}
+            {words.map((mcq) => (
+              <div key={mcq.id}>
+                <Card
+                  title={mcq.title}
+                  votes={2}
+                  type={Type.MCQ}
+                  id={mcq.id}
+                  setSelectedQuestion={setSelectedQuestion}
+                  setSelectedQuestionType={setSelectedQuestionType}
+                />
+              </div>
+            ))}
+            {text.map((mcq) => (
+              <div key={mcq.id}>
+                <Card
+                  title={mcq.title}
+                  votes={2}
+                  type={Type.MCQ}
+                  id={mcq.id}
+                  setSelectedQuestion={setSelectedQuestion}
+                  setSelectedQuestionType={setSelectedQuestionType}
+                />
+              </div>
+            ))}
           </div>
         </div>
         <div className="h-[75vh] w-[70vw] border border-[#27272A]">
-          {getSelectedComponent()}
+          {selctedQuestionType === Type.MCQ && selectedQuestion ? (
+            <>
+              {console.log("came here", selectedQuestion.title)}
+              <Mcq
+                title={selectedQuestion.title}
+                id={selectedQuestion.id}
+                options={selectedQuestion.options}
+              />
+            </>
+          ) : selctedQuestionType === Type.WordCloud ? (
+            <WordCloud />
+          ) : selctedQuestionType === Type.Text ? (
+            <TextQuestion />
+          ) : (
+            <div></div>
+          )}
         </div>
       </div>
     </div>
@@ -258,7 +281,15 @@ const Edit: React.FC<EditProps> = ({ id }) => {
 };
 
 const Card: React.FC<ICard> = (props) => {
-  const { title, votes, type, id, setSelectedQuestion, setSelectedQuestionType, options=[] } = props;
+  const {
+    title,
+    votes,
+    type,
+    id,
+    setSelectedQuestion,
+    setSelectedQuestionType,
+    options = [],
+  } = props;
 
   const getTypeImage = () => {
     if (type === Type.MCQ) return "/test.png";
@@ -268,14 +299,17 @@ const Card: React.FC<ICard> = (props) => {
   };
 
   return (
-    <div onClick={() => {
-      setSelectedQuestion({
-        title,
-        id: id,
-        options
-      })
-      setSelectedQuestionType(type)
-    }} className="my-4 rounded-md border border-orange-500 py-2 text-white cursor-pointer">
+    <div
+      onClick={() => {
+        setSelectedQuestion({
+          title,
+          id: id,
+          options,
+        });
+        setSelectedQuestionType(type);
+      }}
+      className="my-4 cursor-pointer rounded-md border border-orange-500 py-2 text-white"
+    >
       <p className="my-3 text-center">{title}?</p>
       <div className="ml-4 flex ">
         <Image src={getTypeImage()} alt={title} height={30} width={30} />

@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Input } from "../ui/input";
 import { api } from "@/utils/api";
+import { useSocket } from "@/context/SocketProvider";
+import { useRouter } from "next/router";
 
 interface IQuestion {
   title: string;
@@ -15,7 +17,9 @@ interface IOption {
 
 export const Mcq: React.FC<IQuestion> = (props) => {
   const { title, options, id } = props;
-  console.log('i rendred', options);
+  const { startInteraction } = useSocket();
+
+  const router = useRouter();
 
   const updateTitle = api.interaction.updateQuestionTitle.useMutation({
     onSuccess: (data) => {
@@ -24,20 +28,25 @@ export const Mcq: React.FC<IQuestion> = (props) => {
   });
 
   const [newTitle, setTitle] = useState<string>(title);
+  const [answerLink, setAnswerLink] = useState<string | null>(null);
+
+  useEffect(() => {
+    setTitle(title);
+  }, [title]);
 
   const handleUpdateTitle = () => {
     updateTitle.mutateAsync({
       id: id,
       title: newTitle,
       type: "Mcq",
-    });
+    }).catch(err => console.log(err));
   };
 
   return (
     <div className="text-white">
       <div className="mx-auto mt-8 flex w-[85%]">
         <Input
-          placeholder={title}
+          placeholder={newTitle}
           className="h-[5vh]"
           onChange={(e) => setTitle(e.target.value)}
           value={newTitle}
@@ -56,14 +65,37 @@ export const Mcq: React.FC<IQuestion> = (props) => {
       </div>
       <div className="mx-auto flex w-[80%] items-center justify-evenly rounded-md border border-orange-400 bg-[#242526] py-2">
         <div>
-          <button className="rounded-md bg-orange-500 px-7 py-3 text-white hover:bg-orange-600">
+          <button
+            onClick={() => {
+              const rid = router.query.id;
+              console.log("rid", rid);
+              if (rid && typeof rid === "string") {
+                startInteraction({
+                  id,
+                  rid,
+                  title: newTitle,
+                  options: options ?? [],
+                });
+                setAnswerLink(`http://localhost:3000/user/answer?id=${rid}`);
+              }
+            }}
+            className="rounded-md bg-orange-500 px-7 py-3 text-white hover:bg-orange-600"
+          >
             Start Interaction
           </button>
         </div>
+        {answerLink && (
+          <p className="mt-3 text-center text-orange-400">
+            Share this link with participants:&nbsp;
+            <a href={answerLink} target="_blank" rel="noreferrer" className="underline">
+              {answerLink}
+            </a>
+          </p>
+        )}
         <div className="text-white">Start an interaction to collect votes</div>
         <div className="text-xl font-bold text-orange-400">askly</div>
       </div>
-    </div>
+    </div >
   );
 };
 
@@ -75,6 +107,10 @@ const Option: React.FC<IOption> = ({ options = [], id }) => {
       console.log(data);
     },
   });
+
+  useEffect(() => {
+    setOptionList(options);
+  }, [options]);
 
   // Handle adding new option input field
   const handleAddOption = () => {
@@ -97,7 +133,7 @@ const Option: React.FC<IOption> = ({ options = [], id }) => {
     updateOptionList.mutateAsync({
       id,
       options: optionList,
-    });
+    }).catch(err => console.log(err));
   };
 
   return (
