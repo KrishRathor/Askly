@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import Image from "next/image";
-import { signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "@/context/SessionProvider";
 import {
   Popover,
   PopoverContent,
@@ -49,7 +49,7 @@ export const Navbar: React.FC = () => {
                 <div>
                   <p className="text-xl text-white ml-2" >{data.user.name}</p>
                 </div>
-                <div className="flex m-2 cursor-pointer" onClick={() => signOut().catch(err => console.log(err))} >
+                <div className="flex m-2 cursor-pointer" onClick={() => { void signOut(); }} >
                   <Image
                     src={"/logout.png"}
                     alt="logout"

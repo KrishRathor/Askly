@@ -1,5 +1,5 @@
 import { NextPage } from "next";
-import { signIn } from "next-auth/react";
+import { signIn } from "@/context/SessionProvider";
 import { useRouter } from "next/router";
 import Image from "next/image";
 
@@ -15,7 +15,7 @@ const Home: NextPage = () => {
           <nav className="space-x-6">
             <button
               className="text-indigo-600 hover:text-indigo-800 font-medium"
-              onClick={() => signIn().catch(err => console.log(err))}
+              onClick={() => signIn()}
             >
               Sign In
             </button>

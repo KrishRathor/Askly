@@ -20,7 +20,7 @@ model Example {
     updatedAt DateTime @updatedAt
 }
 
-// Necessary for Next auth
+// OAuth (GitHub) — user and linked provider accounts. Session UX uses a signed cookie.
 model Account {
     id                       String  @id @default(cuid())
     userId                   String
