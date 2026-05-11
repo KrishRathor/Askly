@@ -1,21 +1,16 @@
 import { type AppType } from "next/app";
-import { type Session } from "next-auth";
-import { SessionProvider } from "next-auth/react";
-
 import { api } from "../utils/api";
 
 import "../styles/globals.css";
+import { AuthProvider } from "@/context/AuthProvider";
 import { SocketProvider } from "@/context/SocketProvider";
 
-const MyApp: AppType<{ session: Session | null }> = ({
-  Component,
-  pageProps: { session, ...pageProps },
-}) => {
+const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <SocketProvider>
-      <SessionProvider session={session}>
+      <AuthProvider>
         <Component {...pageProps} />
-      </SessionProvider>
+      </AuthProvider>
     </SocketProvider>
   );
 };

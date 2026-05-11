@@ -1,10 +1,12 @@
 import { NextPage } from "next";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import Image from "next/image";
 
+import { useAuth } from "@/context/AuthProvider";
+
 const Home: NextPage = () => {
   const router = useRouter();
+  const { signIn } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
@@ -15,7 +17,7 @@ const Home: NextPage = () => {
           <nav className="space-x-6">
             <button
               className="text-indigo-600 hover:text-indigo-800 font-medium"
-              onClick={() => signIn().catch(err => console.log(err))}
+              onClick={() => signIn()}
             >
               Sign In
             </button>
